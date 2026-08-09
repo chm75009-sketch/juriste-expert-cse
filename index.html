@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Juriste Expert CSE — Délits d'entrave, jurisprudence, consultations obligatoires & BDESE</title>
+<meta name="description" content="Application de référence sur le délit d'entrave au CSE : jurisprudence vérifiée (entraves retenues ou écartées), composition et attributions du CSE, les trois consultations obligatoires, la BDESE et les sanctions.">
+<meta name="theme-color" content="#4f46e5">
+<style>
+  :root{
+    --ink:#0c1024;--body:#3f4661;--dim:#8b93ad;--line:#e7e9f3;--bg2:#f7f8fc;--card:#fff;
+    --indigo:#4f46e5;--indigo2:#7c69f5;--indigo-ink:#3730a3;--indigo-soft:#eef0ff;
+    --gold:#f5b301;--gold-soft:#fff6e0;--green:#12a150;--green-soft:#e7f8ef;
+    --red:#e5484d;--red-soft:#fdecec;--radius:16px;--shadow:0 10px 40px rgba(19,24,54,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:var(--bg2);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--indigo);text-decoration:none}
+  .serif{font-family:Georgia,'Times New Roman',serif;font-weight:600}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+  header.top{position:sticky;top:0;z-index:200;backdrop-filter:blur(14px);background:rgba(255,255,255,.92);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--ink)}
+  .brand .dot{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--indigo),var(--indigo2));display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(79,70,229,.4);color:#fff;font-size:14px}
+  /* Onglets */
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 0;-webkit-overflow-scrolling:touch}
+  .tab{flex:none;font-size:14px;font-weight:700;color:var(--body);background:#fff;border:1px solid var(--line);padding:9px 16px;border-radius:12px;cursor:pointer;transition:.15s}
+  .tab:hover{border-color:var(--indigo)}
+  .tab.active{background:var(--indigo);border-color:var(--indigo);color:#fff;box-shadow:0 6px 18px rgba(79,70,229,.35)}
+  section.module{display:none;padding:26px 0 60px}
+  section.module.visible{display:block}
+  .hero{padding:40px 0 6px}
+  .hero .tag{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--indigo);margin-bottom:10px}
+  .hero h1{font-size:clamp(26px,4.2vw,40px);font-weight:800;letter-spacing:-.02em;margin-bottom:10px}
+  .hero p{color:var(--body);font-size:16px;max-width:760px}
+  .notice{margin:18px 0 0;background:var(--gold-soft);border:1px solid #f2dfae;border-radius:12px;padding:12px 16px;font-size:13.5px;color:#6b5310}
+  h2.mod{font-size:24px;font-weight:800;letter-spacing:-.01em;margin:8px 0 6px}
+  p.mod-sub{color:var(--body);font-size:15px;max-width:780px;margin-bottom:20px}
+  /* Stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
+  @media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+  .stat b{display:block;font-size:26px;font-weight:800}
+  .stat span{font-size:13px;color:var(--dim);font-weight:600}
+  /* Filtres */
+  .filters{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 20px;align-items:center}
+  .filters select,.filters input{font:inherit;font-size:14px;padding:9px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--ink)}
+  .filters input{flex:1;min-width:200px}
+  /* Cartes décisions */
+  .dcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .dhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+  .dref{font-weight:800;font-size:15.5px}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:4px 10px;border-radius:99px}
+  .b-ret{background:var(--red-soft);color:var(--red)}
+  .b-eca{background:var(--green-soft);color:var(--green)}
+  .b-ver{background:var(--indigo-soft);color:var(--indigo-ink)}
+  .b-av{background:var(--gold-soft);color:#8a6a00;border:1px dashed #e3c25a}
+  .b-th{background:#f1f2f8;color:var(--body)}
+  .dcard p.res{font-size:14.5px;color:var(--body);margin:6px 0 10px}
+  .dmeta{font-size:13px;color:var(--dim);margin-bottom:8px}
+  .srcs{display:flex;flex-wrap:wrap;gap:6px}
+  .src{font-size:12px;font-weight:700;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;color:var(--indigo-ink)}
+  a.src:hover{border-color:var(--indigo)}
+  .avnote{font-size:12.5px;color:#8a6a00;background:var(--gold-soft);border-radius:8px;padding:6px 10px;margin-top:8px}
+  .empty{padding:30px;text-align:center;color:var(--dim);font-weight:600}
+  /* Cartes génériques */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:820px){.grid2,.grid3{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+  .card h3{font-size:17px;font-weight:800;margin-bottom:8px}
+  .card h4{font-size:14px;font-weight:800;margin:12px 0 4px;color:var(--indigo-ink)}
+  .card p,.card li{font-size:14px;color:var(--body)}
+  .card ul{padding-left:19px;margin:6px 0}
+  .card li{margin-bottom:4px}
+  .pill{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--indigo);background:var(--indigo-soft);border-radius:99px;padding:4px 11px;margin-bottom:10px}
+  .ref{font-size:12.5px;color:var(--dim);font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:8px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);color:var(--body)}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim)}
+  .tbl-scroll{overflow-x:auto}
+  .warn{background:var(--red-soft);border:1px solid #f5c6c8;border-radius:12px;padding:12px 16px;font-size:13.5px;color:#9c2b2f;margin:12px 0}
+  footer{border-top:1px solid var(--line);padding:26px 0 40px;font-size:13px;color:var(--dim)}
+  .spacer{height:10px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap nav">
+    <div class="brand"><span class="dot">⚖</span> Juriste&nbsp;Expert&nbsp;CSE</div>
+    <div style="font-size:13px;color:var(--dim);font-weight:700">Clarté — RTH NETGOCE</div>
+  </div>
+</header>
+
+<div class="wrap hero">
+  <span class="tag">Droit du travail · Représentation du personnel</span>
+  <h1>Le délit d'entrave au CSE, <span class="serif" style="color:var(--indigo)">décision par décision</span></h1>
+  <p>Toutes les entraves <b>retenues ou écartées</b> par la jurisprudence, adossées à des arrêts identifiés et recoupés dans plusieurs sources sérieuses — avec la composition et les attributions du CSE, les trois consultations obligatoires et la BDESE.</p>
+  <div class="notice">⚠️ <b>Méthode de fiabilité :</b> chaque décision citée a fait l'objet d'un recoupement documentaire. Lorsqu'une décision n'a pas pu être confirmée par au moins <b>4 sources sérieuses concordantes</b> (Légifrance, Cour de cassation, éditeurs juridiques, revues spécialisées…), elle porte la mention <span class="badge b-av">À vérifier</span>. Cette application est une information juridique générale, pas un conseil juridique individualisé.</div>
+</div>
+
+<div class="wrap">
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-mod="jurisprudence">⚖️ Délits d'entrave — jurisprudence</button>
+    <button class="tab" data-mod="composition">👥 Composition & attributions</button>
+    <button class="tab" data-mod="consultations">📋 Les 3 consultations obligatoires</button>
+    <button class="tab" data-mod="bdese">🗂️ BDESE</button>
+    <button class="tab" data-mod="sanctions">🚨 Textes & sanctions</button>
+  </nav>
+</div>
+
+<!-- ============ MODULE JURISPRUDENCE ============ -->
+<section class="module visible" id="mod-jurisprudence">
+  <div class="wrap">
+    <h2 class="mod">Jurisprudence du délit d'entrave</h2>
+    <p class="mod-sub">Décisions pénales (et civiles connexes) où l'entrave au CSE — ou, avant 2018, au comité d'entreprise, aux délégués du personnel ou au CHSCT, dont la jurisprudence reste transposable — a été <b style="color:var(--red)">retenue</b> ou <b style="color:var(--green)">écartée</b>.</p>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="filters">
+      <select id="f-theme">
+        <option value="">Tous les thèmes</option>
+        <option value="mise_en_place">Mise en place / élections</option>
+        <option value="consultations_bdese">Information-consultation & BDESE</option>
+        <option value="fonctionnement_moyens">Fonctionnement & moyens</option>
+        <option value="statut_protecteur_principes">Statut protecteur & principes</option>
+      </select>
+      <select id="f-solution">
+        <option value="">Retenue & écartée</option>
+        <option value="retenue">Entrave retenue</option>
+        <option value="ecartee">Entrave écartée</option>
+      </select>
+      <select id="f-verif">
+        <option value="">Tous statuts de vérification</option>
+        <option value="verifie">Vérifié (≥ 4 sources)</option>
+        <option value="a_verifier">À vérifier</option>
+      </select>
+      <input type="search" id="f-q" placeholder="Rechercher (mot-clé, numéro de pourvoi, article…)">
+    </div>
+
+    <div id="dlist"></div>
+  </div>
+</section>
+
+<!-- ============ MODULE COMPOSITION & ATTRIBUTIONS ============ -->
+<section class="module" id="mod-composition">
+  <div class="wrap">
+    <h2 class="mod">Composition & attributions du CSE</h2>
+    <p class="mod-sub">Le CSE est obligatoire dès <b>11 salariés</b> (effectif atteint pendant 12 mois consécutifs — art. L.&nbsp;2311-2). Ne pas l'organiser, c'est le premier des délits d'entrave.</p>
+
+    <div class="grid2">
+      <div class="card">
+        <span class="pill">Composition</span>
+        <h3>Qui compose le CSE ?</h3>
+        <ul>
+          <li><b>Le président</b> : l'employeur ou son représentant (délégation de pouvoirs), assisté éventuellement de trois collaborateurs au plus ayant voix consultative (art. L.&nbsp;2315-23).</li>
+          <li><b>La délégation élue du personnel</b> : titulaires et suppléants en nombre égal, élus pour 4 ans (accord possible entre 2 et 4 ans).</li>
+          <li><b>Le secrétaire et le trésorier</b> : obligatoires dans les entreprises d'au moins 50 salariés, désignés parmi les titulaires (art. L.&nbsp;2315-23).</li>
+          <li><b>Le représentant syndical au CSE</b> : dans les entreprises de moins de 300 salariés, le délégué syndical est de droit représentant syndical au CSE (art. L.&nbsp;2143-22) ; à partir de 300 salariés, chaque organisation syndicale représentative peut désigner un représentant distinct (art. L.&nbsp;2314-2).</li>
+          <li><b>Invités de droit en matière santé-sécurité</b> : médecin du travail, responsable interne sécurité, agent de contrôle de l'inspection du travail, agent Carsat (art. L.&nbsp;2314-3).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="pill">Effectifs</span>
+        <h3>Nombre d'élus titulaires & heures de délégation</h3>
+        <p class="ref">Extrait du tableau réglementaire (art. R.&nbsp;2314-1). Heures = crédit mensuel par titulaire.</p>
+        <div class="tbl-scroll"><table>
+          <tr><th>Effectif</th><th>Titulaires</th><th>Heures / mois</th></tr>
+          <tr><td>11 – 24</td><td>1</td><td>10 h</td></tr>
+          <tr><td>25 – 49</td><td>2</td><td>10 h</td></tr>
+          <tr><td>50 – 74</td><td>4</td><td>18 h</td></tr>
+          <tr><td>75 – 99</td><td>5</td><td>19 h</td></tr>
+          <tr><td>100 – 124</td><td>6</td><td>21 h</td></tr>
+          <tr><td>125 – 199</td><td>7 à 9</td><td>21 h</td></tr>
+          <tr><td>200 – 499</td><td>10 à 12</td><td>22 h</td></tr>
+          <tr><td>500 – 599</td><td>13</td><td>24 h</td></tr>
+          <tr><td>600 et +</td><td>14 à 35</td><td>24 h et +</td></tr>
+        </table></div>
+        <p class="ref">Barème complet jusqu'à 10&nbsp;000 salariés : <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000036481533" target="_blank" rel="noopener">art. R.&nbsp;2314-1 sur Légifrance</a>. Le protocole d'accord préélectoral peut modifier ces chiffres.</p>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="grid2">
+      <div class="card">
+        <span class="pill">Attributions · 11 à 49 salariés</span>
+        <h3>Entreprises de 11 à 49 salariés</h3>
+        <p class="ref">Art. L.&nbsp;2312-5 et s.</p>
+        <ul>
+          <li>Présenter à l'employeur les <b>réclamations individuelles et collectives</b> (salaires, application du code du travail, conventions collectives, protection sociale).</li>
+          <li>Promouvoir la <b>santé, la sécurité et les conditions de travail</b> ; réaliser des enquêtes en matière d'accidents du travail et de maladies professionnelles.</li>
+          <li>Exercer le <b>droit d'alerte</b> en cas d'atteinte aux droits des personnes ou de danger grave et imminent.</li>
+          <li>Saisir l'<b>inspection du travail</b> de toute plainte ou observation.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="pill">Attributions · 50 salariés et +</span>
+        <h3>Entreprises d'au moins 50 salariés</h3>
+        <p class="ref">Art. L.&nbsp;2312-8 et s. (en plus des attributions ci-contre)</p>
+        <ul>
+          <li>Assurer l'<b>expression collective des salariés</b> : prise en compte permanente de leurs intérêts dans les décisions de gestion, d'organisation et d'évolution économique de l'entreprise.</li>
+          <li>Être <b>informé et consulté</b> sur l'organisation, la gestion et la marche générale de l'entreprise (effectifs, conditions d'emploi et de travail, introduction de nouvelles technologies, restructurations…).</li>
+          <li>Les <b>trois consultations récurrentes obligatoires</b> (voir module dédié) et les consultations ponctuelles.</li>
+          <li>Gérer les <b>activités sociales et culturelles</b> ; disposer de deux budgets distincts (fonctionnement : 0,20&nbsp;% ou 0,22&nbsp;% de la masse salariale ; ASC selon accord ou usage — art. L.&nbsp;2315-61, L.&nbsp;2312-81).</li>
+          <li><b>Droits d'alerte</b> économique, sociale, danger grave et imminent, atteinte aux droits des personnes.</li>
+          <li>Recourir à des <b>experts</b> (expert-comptable, expert habilité) dans les cas prévus par la loi.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="grid2">
+      <div class="card">
+        <span class="pill">CSSCT</span>
+        <h3>Commission santé, sécurité et conditions de travail</h3>
+        <p class="ref">Art. L.&nbsp;2315-36 et s.</p>
+        <ul>
+          <li><b>Obligatoire</b> : entreprises et établissements distincts d'au moins <b>300 salariés</b>, sites Seveso seuil haut et certaines installations nucléaires.</li>
+          <li>Possible partout par accord ; l'inspection du travail peut l'imposer si l'activité le justifie.</li>
+          <li>Au moins <b>3 membres</b> désignés parmi les élus du CSE, dont un du 2<sup>e</sup> ou 3<sup>e</sup> collège ; présidée par l'employeur.</li>
+          <li>Se voit déléguer des attributions santé-sécurité du CSE, <b>sauf</b> le recours à l'expert et les attributions consultatives (qui restent au CSE plénier).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="pill">Réunions</span>
+        <h3>Rythme des réunions</h3>
+        <p class="ref">Art. L.&nbsp;2315-21, L.&nbsp;2315-27, L.&nbsp;2315-28</p>
+        <ul>
+          <li><b>11 à 49 salariés</b> : au moins <b>1 réunion par mois</b>.</li>
+          <li><b>50 à 299 salariés</b> : au moins <b>1 réunion tous les 2 mois</b> (accord possible, minimum 6 par an).</li>
+          <li><b>300 salariés et +</b> : au moins <b>1 réunion par mois</b>.</li>
+          <li>Au moins <b>4 réunions par an</b> portent en tout ou partie sur la santé, la sécurité et les conditions de travail.</li>
+          <li>Réunions extraordinaires : à la demande motivée de la majorité des titulaires, ou de 2 membres pour les sujets santé-sécurité ; de droit après tout accident grave.</li>
+        </ul>
+        <div class="warn">Le défaut de convocation ou l'espacement irrégulier des réunions est une source classique de condamnation pour entrave (voir module jurisprudence, thème « Fonctionnement & moyens »).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MODULE 3 CONSULTATIONS ============ -->
+<section class="module" id="mod-consultations">
+  <div class="wrap">
+    <h2 class="mod">Les trois consultations récurrentes obligatoires</h2>
+    <p class="mod-sub">Dans les entreprises d'au moins 50 salariés, le CSE est obligatoirement consulté sur trois blocs (art. L.&nbsp;2312-17). Périodicité annuelle par défaut ; un accord peut l'espacer jusqu'à 3 ans (art. L.&nbsp;2312-19). Le support de ces consultations est la <b>BDESE</b>. L'absence de consultation, une consultation tardive (après la décision) ou une information insuffisante caractérisent l'entrave.</p>
+
+    <div class="grid3">
+      <div class="card">
+        <span class="pill">Consultation 1</span>
+        <h3>Orientations stratégiques</h3>
+        <p class="ref">Art. L.&nbsp;2312-24</p>
+        <h4>Contenu précis</h4>
+        <ul>
+          <li>Orientations stratégiques définies par l'organe de direction et leurs conséquences sur : l'<b>activité</b>, l'<b>emploi</b>, l'<b>évolution des métiers et des compétences</b>, l'<b>organisation du travail</b>, le recours à la <b>sous-traitance</b>, à l'<b>intérim</b>, aux <b>contrats temporaires</b> et aux <b>stages</b>.</li>
+          <li>La <b>GPEC</b> (gestion prévisionnelle des emplois et des compétences).</li>
+          <li>Les <b>orientations de la formation professionnelle</b>.</li>
+        </ul>
+        <h4>Programme / déroulé</h4>
+        <ul>
+          <li>Mise à disposition des informations dans la <b>BDESE</b> (rubrique orientations).</li>
+          <li>Le CSE émet un avis et peut proposer des <b>orientations alternatives</b>.</li>
+          <li>L'avis est transmis à l'organe de direction (conseil d'administration ou de surveillance), qui doit formuler une <b>réponse argumentée</b> ; le CSE en reçoit communication et peut y répondre.</li>
+          <li>Expertise possible par un <b>expert-comptable</b> (financement : 80&nbsp;% employeur / 20&nbsp;% budget CSE, sauf accord — art. L.&nbsp;2315-80).</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="pill">Consultation 2</span>
+        <h3>Situation économique et financière</h3>
+        <p class="ref">Art. L.&nbsp;2312-25</p>
+        <h4>Contenu précis</h4>
+        <ul>
+          <li>Situation économique et financière de l'entreprise (comptes, chiffre d'affaires, résultats, structure financière).</li>
+          <li>La <b>politique de recherche et de développement technologique</b>, y compris l'utilisation du crédit d'impôt recherche.</li>
+          <li>Informations sur les <b>aides publiques</b> perçues et leur utilisation.</li>
+        </ul>
+        <h4>Programme / déroulé</h4>
+        <ul>
+          <li>Informations mises à disposition dans la <b>BDESE</b> (fonds propres, endettement, rémunération des financeurs, flux financiers…).</li>
+          <li>Avis unique du CSE sur le bloc économique et financier.</li>
+          <li>Expertise possible par un <b>expert-comptable</b>, financée à <b>100&nbsp;% par l'employeur</b> (art. L.&nbsp;2315-80).</li>
+          <li>À défaut d'avis exprès dans le délai, le CSE est réputé avoir été consulté et avoir rendu un <b>avis négatif</b> (art. L.&nbsp;2312-16).</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="pill">Consultation 3</span>
+        <h3>Politique sociale, conditions de travail et emploi</h3>
+        <p class="ref">Art. L.&nbsp;2312-26 et s.</p>
+        <h4>Contenu précis</h4>
+        <ul>
+          <li>Évolution de l'<b>emploi</b> et des <b>qualifications</b>.</li>
+          <li>Programme pluriannuel et actions de <b>formation professionnelle</b>, apprentissage, conditions d'accueil en <b>stage</b>.</li>
+          <li><b>Conditions de travail</b>, durée et aménagement du temps de travail, congés.</li>
+          <li>Actions de <b>prévention en matière de santé et de sécurité</b> (rapport annuel et programme annuel de prévention — PAPRIPACT).</li>
+          <li><b>Égalité professionnelle</b> entre les femmes et les hommes.</li>
+          <li>Emploi des <b>travailleurs handicapés</b>.</li>
+          <li><b>Bilan social</b> dans les entreprises d'au moins 300 salariés (art. L.&nbsp;2312-28).</li>
+        </ul>
+        <h4>Programme / déroulé</h4>
+        <ul>
+          <li>Informations dans la <b>BDESE</b> (investissement social, égalité professionnelle…).</li>
+          <li>Le CSE peut rendre des <b>avis séparés</b> par sous-thème, selon accord.</li>
+          <li>Expertise possible par un <b>expert-comptable</b>, financée à 100&nbsp;% par l'employeur.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="grid2">
+      <div class="card">
+        <span class="pill">Délais</span>
+        <h3>Délais pour rendre l'avis</h3>
+        <p class="ref">Art. L.&nbsp;2312-16, R.&nbsp;2312-6 (à défaut d'accord)</p>
+        <div class="tbl-scroll"><table>
+          <tr><th>Situation</th><th>Délai d'avis</th></tr>
+          <tr><td>Consultation simple</td><td><b>1 mois</b></td></tr>
+          <tr><td>Intervention d'un expert</td><td><b>2 mois</b></td></tr>
+          <tr><td>Expertises multiples (CSE central + établissements)</td><td><b>3 mois</b></td></tr>
+        </table></div>
+        <p>Le délai court à compter de la communication des informations ou de leur mise à disposition dans la BDESE. Si les informations sont insuffisantes, le CSE peut saisir le <b>président du tribunal judiciaire</b> en référé pour les obtenir et faire prolonger le délai (art. L.&nbsp;2312-15).</p>
+      </div>
+      <div class="card">
+        <span class="pill">Risque pénal</span>
+        <h3>Défaut de consultation = entrave</h3>
+        <ul>
+          <li>La consultation doit être <b>préalable</b> à la décision : consulter après coup ou mettre le comité devant le fait accompli caractérise l'entrave.</li>
+          <li>L'information doit être <b>écrite, précise et suffisamment complète</b> pour permettre un avis utile.</li>
+          <li>Sanction : amende de <b>7&nbsp;500&nbsp;€</b> (personne physique) par infraction, jusqu'à <b>37&nbsp;500&nbsp;€</b> pour la personne morale — voir module « Textes & sanctions ».</li>
+          <li>Le juge civil peut en outre <b>suspendre la décision</b> prise sans consultation et allouer des dommages-intérêts au CSE.</li>
+        </ul>
+        <p class="ref">→ Les décisions correspondantes sont dans le module jurisprudence, thème « Information-consultation & BDESE ».</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MODULE BDESE ============ -->
+<section class="module" id="mod-bdese">
+  <div class="wrap">
+    <h2 class="mod">BDESE — Base de données économiques, sociales et environnementales</h2>
+    <p class="mod-sub">Obligatoire dans toute entreprise d'au moins <b>50 salariés</b> (art. L.&nbsp;2312-18). Elle est le support des trois consultations récurrentes. Son absence ou son défaut d'actualisation prive le CSE d'une information utile et est sanctionné au titre de l'entrave.</p>
+
+    <div class="grid2">
+      <div class="card">
+        <span class="pill">Contenu</span>
+        <h3>Les rubriques obligatoires</h3>
+        <p class="ref">Art. L.&nbsp;2312-21 (accord) et L.&nbsp;2312-36 (à défaut d'accord)</p>
+        <ul>
+          <li>Investissement <b>social</b> (emploi, évolution et répartition des contrats précaires, formation, conditions de travail).</li>
+          <li>Investissement <b>matériel et immatériel</b>.</li>
+          <li><b>Égalité professionnelle</b> entre les femmes et les hommes (dont l'index).</li>
+          <li><b>Fonds propres</b> et <b>endettement</b>.</li>
+          <li>Ensemble des éléments de la <b>rémunération</b> des salariés et dirigeants.</li>
+          <li><b>Activités sociales et culturelles</b>.</li>
+          <li>Rémunération des <b>financeurs</b>.</li>
+          <li><b>Flux financiers</b> à destination de l'entreprise (aides publiques, crédits d'impôts, exonérations).</li>
+          <li>Sous-traitance ; le cas échéant, transferts commerciaux et financiers entre entités du groupe.</li>
+          <li><b>Conséquences environnementales</b> de l'activité (ajout loi Climat et résilience du 22 août 2021 — le « E » de BDESE).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="pill">Règles pratiques</span>
+        <h3>Mise en place & accès</h3>
+        <ul>
+          <li>Les informations portent sur l'année en cours et les <b>deux années précédentes</b>, avec des perspectives sur les <b>trois années suivantes</b> (à défaut d'accord — art. R.&nbsp;2312-10).</li>
+          <li>Accessible en permanence aux <b>membres de la délégation du personnel</b> du CSE et aux <b>délégués syndicaux</b>.</li>
+          <li>Support libre (papier ou numérique) ; l'employeur doit la tenir <b>à jour</b> et informer de l'actualisation.</li>
+          <li>Les élus sont tenus à une obligation de <b>discrétion</b> pour les informations présentées comme confidentielles.</li>
+          <li>Un accord d'entreprise (art. L.&nbsp;2312-21) peut adapter l'organisation et le contenu, sans supprimer les thèmes obligatoires.</li>
+        </ul>
+        <div class="warn"><b>Risque :</b> l'absence de BDESE, une base vide ou non actualisée empêche les consultations obligatoires de se tenir utilement : les juges y voient une entrave au fonctionnement du CSE et peuvent suspendre les procédures de consultation en cours (voir module jurisprudence).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MODULE SANCTIONS ============ -->
+<section class="module" id="mod-sanctions">
+  <div class="wrap">
+    <h2 class="mod">Textes & sanctions du délit d'entrave</h2>
+    <p class="mod-sub">Le délit d'entrave est une infraction <b>intentionnelle</b> : l'élément moral se déduit en pratique du caractère volontaire des actes ou omissions, l'employeur étant présumé connaître ses obligations.</p>
+
+    <div class="grid2">
+      <div class="card">
+        <span class="pill">Texte pivot</span>
+        <h3>Article L. 2317-1 du code du travail</h3>
+        <ul>
+          <li><b>Entrave à la constitution</b> du CSE, à la libre désignation de ses membres (élections non organisées, absence de PV de carence, pressions sur les candidatures) : <b>1 an d'emprisonnement + 7&nbsp;500&nbsp;€ d'amende</b>.</li>
+          <li><b>Entrave à son fonctionnement régulier</b> (réunions, consultations, moyens, BDESE…) : <b>7&nbsp;500&nbsp;€ d'amende</b> (la peine d'emprisonnement a été supprimée pour ce volet par la loi n°&nbsp;2015-990 du 6 août 2015).</li>
+        </ul>
+        <h4>Personnes morales</h4>
+        <p>Amende portée au quintuple : <b>37&nbsp;500&nbsp;€</b> (art. 131-38 du code pénal), avec peines complémentaires possibles (affichage de la décision…).</p>
+        <h4>Cumul</h4>
+        <p>Chaque fait d'entrave distinct peut constituer une infraction distincte : les amendes peuvent se <b>cumuler</b> (une par réunion non convoquée, par consultation omise…).</p>
+      </div>
+      <div class="card">
+        <span class="pill">Autres sanctions</span>
+        <h3>Au-delà du pénal</h3>
+        <ul>
+          <li><b>Statut protecteur</b> : le licenciement d'un élu ou candidat sans autorisation de l'inspection du travail est un délit d'entrave distinct (art. L.&nbsp;2411-1 et s.) et entraîne nullité du licenciement, réintégration et indemnisation.</li>
+          <li><b>Juge civil (tribunal judiciaire, souvent en référé)</b> : suspension de la décision prise sans consultation, injonction sous astreinte de communiquer les informations, dommages-intérêts au CSE et aux syndicats.</li>
+          <li><b>DREETS / inspection du travail</b> : constat par procès-verbal transmis au parquet ; observations et mises en demeure.</li>
+          <li><b>Responsabilité du dirigeant</b> : le chef d'entreprise peut s'exonérer par une <b>délégation de pouvoirs</b> effective (délégataire pourvu de la compétence, de l'autorité et des moyens nécessaires).</li>
+        </ul>
+        <h4>Prescription</h4>
+        <p>Délit : <b>6 ans</b> à compter de la commission (art. 8 du code de procédure pénale). Pour les infractions d'omission continues (ex. absence persistante d'institution), le point de départ est reporté tant que dure l'omission.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><b>Juriste Expert CSE</b> — application d'information juridique. Les décisions marquées « À vérifier » n'ont pas pu être recoupées dans au moins 4 sources sérieuses : vérifiez la référence avant toute utilisation contentieuse. Cette application ne constitue pas un conseil juridique.</p>
+  </div>
+</footer>
+
+<script src="jurisprudence.js"></script>
+<script>
+/* ==== RENDU DU MODULE JURISPRUDENCE ==== */
+const DECISIONS = (typeof JURISPRUDENCE !== 'undefined') ? JURISPRUDENCE : [];
+const THEMES = {
+  mise_en_place: "Mise en place / élections",
+  consultations_bdese: "Information-consultation & BDESE",
+  fonctionnement_moyens: "Fonctionnement & moyens",
+  statut_protecteur_principes: "Statut protecteur & principes"
+};
+const els = {
+  list: document.getElementById('dlist'),
+  stats: document.getElementById('stats'),
+  theme: document.getElementById('f-theme'),
+  sol: document.getElementById('f-solution'),
+  verif: document.getElementById('f-verif'),
+  q: document.getElementById('f-q')
+};
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function safeUrl(u){ return /^https?:\/\//i.test(u||'') ? u : null; }
+
+function renderStats(){
+  const t = DECISIONS.length;
+  const r = DECISIONS.filter(d=>d.solution==='retenue').length;
+  const e = DECISIONS.filter(d=>d.solution==='ecartee').length;
+  const av = DECISIONS.filter(d=>d.statut_verification==='a_verifier').length;
+  els.stats.innerHTML =
+    `<div class="stat"><b>${t}</b><span>décisions recensées</span></div>`+
+    `<div class="stat"><b style="color:var(--red)">${r}</b><span>entraves retenues</span></div>`+
+    `<div class="stat"><b style="color:var(--green)">${e}</b><span>entraves écartées</span></div>`+
+    `<div class="stat"><b style="color:#b8860b">${av}</b><span>à vérifier</span></div>`;
+}
+
+function card(d){
+  const sol = d.solution==='retenue'
+    ? '<span class="badge b-ret">Entrave retenue</span>'
+    : '<span class="badge b-eca">Entrave écartée</span>';
+  const ver = d.statut_verification==='verifie'
+    ? `<span class="badge b-ver">✓ Vérifié · ${d.nb_sources} sources</span>`
+    : `<span class="badge b-av">⚠ À vérifier</span>`;
+  const srcs = (d.sources||[]).map(s=>{
+    const u = safeUrl(s.url);
+    return u ? `<a class="src" href="${esc(u)}" target="_blank" rel="noopener">${esc(s.nom)}</a>`
+             : `<span class="src">${esc(s.nom)}</span>`;
+  }).join('');
+  const note = d.note_verification
+    ? `<div class="avnote">⚠ ${esc(d.note_verification)}</div>` : '';
+  return `<article class="dcard">
+    <div class="dhead">
+      <span class="dref">${esc(d.juridiction)}, ${esc(d.date)}${d.numero? ', '+esc(d.numero):''}</span>
+      ${sol}${ver}<span class="badge b-th">${esc(THEMES[d.theme]||d.theme)}</span>
+    </div>
+    <div class="dmeta">${esc(d.sous_theme||'')}${(d.articles&&d.articles.length)? ' · Art. '+d.articles.map(esc).join(', '):''}</div>
+    <p class="res">${esc(d.resume)}</p>
+    <div class="srcs">${srcs}</div>
+    ${note}
+  </article>`;
+}
+
+function sortKey(d){ return d.date_iso || ''; }
+
+function apply(){
+  const th = els.theme.value, so = els.sol.value, ve = els.verif.value,
+        q = els.q.value.trim().toLowerCase();
+  const out = DECISIONS.filter(d=>{
+    if(th && d.theme!==th) return false;
+    if(so && d.solution!==so) return false;
+    if(ve && d.statut_verification!==ve) return false;
+    if(q){
+      const hay = [d.juridiction,d.date,d.numero,d.resume,d.sous_theme,(d.articles||[]).join(' ')].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=> sortKey(b).localeCompare(sortKey(a)));
+  els.list.innerHTML = out.length ? out.map(card).join('') : '<div class="empty">Aucune décision ne correspond à ces filtres.</div>';
+}
+['change','input'].forEach(ev=>{
+  els.theme.addEventListener(ev,apply); els.sol.addEventListener(ev,apply);
+  els.verif.addEventListener(ev,apply); els.q.addEventListener(ev,apply);
+});
+
+/* ==== ONGLETS ==== */
+document.getElementById('tabs').addEventListener('click', e=>{
+  const b = e.target.closest('.tab'); if(!b) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===b));
+  document.querySelectorAll('.module').forEach(m=>m.classList.toggle('visible', m.id==='mod-'+b.dataset.mod));
+  scrollTo({top:0,behavior:'smooth'});
+});
+
+renderStats(); apply();
+</script>
+</body>
+</html>

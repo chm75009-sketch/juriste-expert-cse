@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "entrave-cse/decision.schema.json",
+  "title": "Décision — délit d'entrave au CSE",
+  "description": "Schéma d'un enregistrement de la base de jurisprudence. Une décision n'est marquée 'verifie' que si elle est recoupée par au moins 4 sources sérieuses distinctes et concordantes ; sinon 'a_verifier'.",
+  "type": "object",
+  "required": ["id", "theme", "juridiction", "date", "solution", "resume", "sources", "nb_sources", "statut_verification"],
+  "properties": {
+    "id": { "type": "string", "description": "Identifiant stable, ex. 'cass-crim-1990-03-06-89-80123'" },
+    "theme": {
+      "type": "string",
+      "enum": ["mise_en_place", "consultations_bdese", "fonctionnement_moyens", "statut_protecteur_principes"],
+      "description": "Thème principal de l'entrave"
+    },
+    "sous_theme": { "type": ["string", "null"], "description": "Précision libre : 'défaut de PV de carence', 'heures de délégation'…" },
+    "juridiction": { "type": "string", "description": "Ex. 'Cass. crim.', 'Cass. soc.', 'CA Paris', 'Trib. jud. Nanterre'" },
+    "date": { "type": "string", "description": "Date de la décision en toutes lettres, ex. '6 mars 1990'" },
+    "date_iso": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Date ISO pour le tri" },
+    "numero": { "type": ["string", "null"], "description": "Numéro de pourvoi/RG UNIQUEMENT s'il est confirmé par les sources ; sinon null" },
+    "solution": {
+      "type": "string",
+      "enum": ["retenue", "ecartee"],
+      "description": "L'entrave a-t-elle été finalement retenue ou écartée ?"
+    },
+    "resume": { "type": "string", "description": "2 à 4 phrases : faits, ce qui a été jugé, portée pratique" },
+    "articles": { "type": "array", "items": { "type": "string" }, "description": "Articles visés, ex. 'L. 2317-1'" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["nom"],
+        "properties": {
+          "nom": { "type": "string", "description": "Nom de la source : Légifrance, Cour de cassation, Dalloz actualité…" },
+          "url": { "type": ["string", "null"], "format": "uri" }
+        }
+      },
+      "description": "Sources sérieuses distinctes citant la décision (blogs anonymes exclus)"
+    },
+    "nb_sources": { "type": "integer", "minimum": 0, "description": "Nombre de sources sérieuses distinctes concordantes" },
+    "statut_verification": {
+      "type": "string",
+      "enum": ["verifie", "a_verifier"],
+      "description": "'verifie' = au moins 4 sources sérieuses concordantes ; 'a_verifier' sinon ou en cas de divergence entre sources"
+    },
+    "note_verification": { "type": ["string", "null"], "description": "Obligatoire si 'a_verifier' : ce qui manque ou diverge (date, numéro, existence…)" }
+  }
+}
