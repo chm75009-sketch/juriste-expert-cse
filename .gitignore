@@ -1,0 +1,15 @@
+# Clé API Judilibre (PISTE) — NE JAMAIS COMMITTER
+outils/judilibre-api-key.txt
+*.key
+.env
+.env.*
+
+# Cache et fichiers de travail de la collecte
+outils/cache/
+outils/*.log
+outils/rapport-collecte-*.json
+
+# Divers
+__pycache__/
+*.pyc
+.DS_Store

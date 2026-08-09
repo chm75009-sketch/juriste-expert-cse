@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "entrave-cse/decision.schema.json",
   "title": "Décision — délit d'entrave au CSE",
-  "description": "Schéma d'un enregistrement de la base de jurisprudence. Une décision n'est marquée 'verifie' que si elle est recoupée par au moins 4 sources sérieuses distinctes et concordantes ; sinon 'a_verifier'.",
+  "description": "Schéma d'un enregistrement de la base de jurisprudence. Deux niveaux : 'arrêts commentés' (statut 'verifie' si ≥ 4 sources sérieuses concordantes, sinon 'a_verifier') et 'texte officiel' (statut 'source_officielle' : décision issue de l'API Judilibre, avec identifiant et URL officiels). Voir methodologie-sources.md.",
   "type": "object",
   "required": ["id", "theme", "juridiction", "date", "solution", "resume", "sources", "nb_sources", "statut_verification"],
   "properties": {
@@ -10,19 +10,26 @@
     "theme": {
       "type": "string",
       "enum": ["mise_en_place", "consultations_bdese", "fonctionnement_moyens", "statut_protecteur_principes"],
-      "description": "Thème principal de l'entrave"
+      "description": "Thème principal de l'entrave : mise en place/élections ; consultations & BDESE ; fonctionnement & moyens ; statut protecteur"
     },
-    "sous_theme": { "type": ["string", "null"], "description": "Précision libre : 'défaut de PV de carence', 'heures de délégation'…" },
+    "sous_theme": { "type": ["string", "null"], "description": "Précision libre : 'défaut de PV de carence', 'heures de délégation'… Pour les fiches Judilibre : indices de classement retenus" },
     "juridiction": { "type": "string", "description": "Ex. 'Cass. crim.', 'Cass. soc.', 'CA Paris', 'Trib. jud. Nanterre'" },
+    "chambre": { "type": ["string", "null"], "description": "Chambre telle que fournie par la source officielle, ex. 'Chambre criminelle', 'Chambre sociale'" },
     "date": { "type": "string", "description": "Date de la décision en toutes lettres, ex. '6 mars 1990'" },
-    "date_iso": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Date ISO pour le tri" },
-    "numero": { "type": ["string", "null"], "description": "Numéro de pourvoi/RG UNIQUEMENT s'il est confirmé par les sources ; sinon null" },
+    "date_iso": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Date ISO pour le tri et les filtres de période" },
+    "numero": { "type": ["string", "null"], "description": "Numéro de pourvoi/RG UNIQUEMENT s'il est confirmé (sources doctrinales ou métadonnées Judilibre) ; sinon null. Sert de clé de dédoublonnage" },
     "solution": {
       "type": "string",
-      "enum": ["retenue", "ecartee"],
-      "description": "L'entrave a-t-elle été finalement retenue ou écartée ?"
+      "enum": ["retenue", "ecartee", "a_confirmer"],
+      "description": "'retenue' / 'ecartee' : solution établie. 'a_confirmer' (fiches Judilibre uniquement) : la détection automatique sur le dispositif (rejet/cassation/relaxe/condamnation) est ambiguë et doit être confirmée par lecture de la décision"
     },
-    "resume": { "type": "string", "description": "2 à 4 phrases : faits, ce qui a été jugé, portée pratique" },
+    "solution_officielle": { "type": ["string", "null"], "description": "Solution telle qu'énoncée par Judilibre, ex. 'Rejet', 'Cassation', 'Cassation partielle' (fiches source_officielle)" },
+    "resume": { "type": "string", "description": "Arrêts commentés : 2 à 4 phrases rédigées (faits, ce qui a été jugé, portée pratique). Fiches Judilibre : sommaire officiel s'il existe, sinon extrait des motifs" },
+    "resume_type": {
+      "type": ["string", "null"],
+      "enum": ["redige", "sommaire_officiel", "extrait_motifs", null],
+      "description": "'redige' : résumé rédigé (arrêts commentés) ; 'sommaire_officiel' : sommaire publié par la Cour ; 'extrait_motifs' : extrait automatique des motifs, provisoire"
+    },
     "articles": { "type": "array", "items": { "type": "string" }, "description": "Articles visés, ex. 'L. 2317-1'" },
     "sources": {
       "type": "array",
@@ -31,18 +38,29 @@
         "type": "object",
         "required": ["nom"],
         "properties": {
-          "nom": { "type": "string", "description": "Nom de la source : Légifrance, Cour de cassation, Dalloz actualité…" },
+          "nom": { "type": "string", "description": "Nom de la source : Judilibre (texte officiel), Légifrance, Cour de cassation, Dalloz actualité…" },
           "url": { "type": ["string", "null"], "format": "uri" }
         }
       },
-      "description": "Sources sérieuses distinctes citant la décision (blogs anonymes exclus)"
+      "description": "Sources. Fiches source_officielle : la première entrée est 'Judilibre (texte officiel)' avec l'URL publique de la décision"
     },
-    "nb_sources": { "type": "integer", "minimum": 0, "description": "Nombre de sources sérieuses distinctes concordantes" },
+    "nb_sources": { "type": "integer", "minimum": 0, "description": "Arrêts commentés : nombre de sources sérieuses distinctes concordantes. Fiches source_officielle : 1 (la base officielle)" },
     "statut_verification": {
       "type": "string",
-      "enum": ["verifie", "a_verifier"],
-      "description": "'verifie' = au moins 4 sources sérieuses concordantes ; 'a_verifier' sinon ou en cas de divergence entre sources"
+      "enum": ["verifie", "a_verifier", "source_officielle"],
+      "description": "'verifie' = arrêt commenté confirmé par ≥ 4 sources sérieuses concordantes ; 'a_verifier' = arrêt commenté insuffisamment recoupé ou divergent ; 'source_officielle' = décision issue de l'API Judilibre (texte officiel)"
     },
-    "note_verification": { "type": ["string", "null"], "description": "Obligatoire si 'a_verifier' : ce qui manque ou diverge (date, numéro, existence…)" }
-  }
+    "note_verification": { "type": ["string", "null"], "description": "Obligatoire si 'a_verifier' (ce qui manque ou diverge) et si solution 'a_confirmer' (pourquoi la détection est ambiguë)" },
+    "judilibre_id": { "type": ["string", "null"], "description": "Identifiant unique de la décision dans Judilibre (obligatoire pour les fiches source_officielle). Sert de clé de dédoublonnage" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "statut_verification": { "const": "source_officielle" } } },
+      "then": { "required": ["judilibre_id"] }
+    },
+    {
+      "if": { "properties": { "solution": { "const": "a_confirmer" } } },
+      "then": { "required": ["note_verification"] }
+    }
+  ]
 }

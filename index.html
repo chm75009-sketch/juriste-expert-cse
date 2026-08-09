@@ -38,11 +38,22 @@
   h2.mod{font-size:24px;font-weight:800;letter-spacing:-.01em;margin:8px 0 6px}
   p.mod-sub{color:var(--body);font-size:15px;max-width:780px;margin-bottom:20px}
   /* Stats */
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:20px 0}
   @media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
   .stat b{display:block;font-size:26px;font-weight:800}
   .stat span{font-size:13px;color:var(--dim);font-weight:600}
+  /* Compteurs par thème */
+  .theme-counts{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+  .tcount{font-size:13px;font-weight:700;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:6px 14px;color:var(--body);cursor:pointer;transition:.15s}
+  .tcount:hover{border-color:var(--indigo)}
+  .tcount.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .tcount b{color:var(--indigo);margin-left:4px}
+  .tcount.active b{color:#fff}
+  /* Chargement progressif */
+  .loadmore{display:block;margin:18px auto 0;font:inherit;font-size:14px;font-weight:800;color:var(--indigo);background:var(--indigo-soft);border:1px solid var(--indigo);border-radius:12px;padding:11px 26px;cursor:pointer;transition:.15s}
+  .loadmore:hover{background:var(--indigo);color:#fff}
+  .count-line{font-size:13px;color:var(--dim);font-weight:600;margin:0 0 12px}
   /* Filtres */
   .filters{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 20px;align-items:center}
   .filters select,.filters input{font:inherit;font-size:14px;padding:9px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--ink)}
@@ -56,6 +67,8 @@
   .b-eca{background:var(--green-soft);color:var(--green)}
   .b-ver{background:var(--indigo-soft);color:var(--indigo-ink)}
   .b-av{background:var(--gold-soft);color:#8a6a00;border:1px dashed #e3c25a}
+  .b-off{background:#e0f2fe;color:#075985;border:1px solid #bae6fd}
+  .b-ac{background:#f1f2f8;color:#6b7280;border:1px dashed #c3c8d4}
   .b-th{background:#f1f2f8;color:var(--body)}
   .dcard p.res{font-size:14.5px;color:var(--body);margin:6px 0 10px}
   .dmeta{font-size:13px;color:var(--dim);margin-bottom:8px}
@@ -98,7 +111,7 @@
   <span class="tag">Droit du travail · Représentation du personnel</span>
   <h1>Le délit d'entrave au CSE, <span class="serif" style="color:var(--indigo)">décision par décision</span></h1>
   <p>Toutes les entraves <b>retenues ou écartées</b> par la jurisprudence, adossées à des arrêts identifiés et recoupés dans plusieurs sources sérieuses — avec la composition et les attributions du CSE, les trois consultations obligatoires et la BDESE.</p>
-  <div class="notice">⚠️ <b>Méthode de fiabilité :</b> chaque décision citée a fait l'objet d'un recoupement documentaire. Lorsqu'une décision n'a pas pu être confirmée par au moins <b>4 sources sérieuses concordantes</b> (Légifrance, Cour de cassation, éditeurs juridiques, revues spécialisées…), elle porte la mention <span class="badge b-av">À vérifier</span>. Cette application est une information juridique générale, pas un conseil juridique individualisé.</div>
+  <div class="notice">⚠️ <b>Méthode de fiabilité à deux niveaux :</b> les <b>arrêts commentés</b> sont recoupés dans plusieurs sources sérieuses — confirmés par au moins <b>4 sources concordantes</b> ils portent la mention <span class="badge b-ver">✓ Vérifié</span>, sinon <span class="badge b-av">À vérifier</span>. Les décisions collectées dans la base publique <b>Judilibre</b> (Cour de cassation) portent la mention <span class="badge b-off">🏛 Source officielle</span> : texte authentique, mais solution et thème détectés automatiquement (« solution à confirmer » en cas d'ambiguïté). Cette application est une information juridique générale, pas un conseil juridique individualisé.</div>
 </div>
 
 <div class="wrap">
@@ -119,6 +132,8 @@
 
     <div class="stats" id="stats"></div>
 
+    <div class="theme-counts" id="theme-counts"></div>
+
     <div class="filters">
       <select id="f-theme">
         <option value="">Tous les thèmes</option>
@@ -128,18 +143,36 @@
         <option value="statut_protecteur_principes">Statut protecteur & principes</option>
       </select>
       <select id="f-solution">
-        <option value="">Retenue & écartée</option>
+        <option value="">Toutes solutions</option>
         <option value="retenue">Entrave retenue</option>
         <option value="ecartee">Entrave écartée</option>
+        <option value="a_confirmer">Solution à confirmer</option>
       </select>
       <select id="f-verif">
         <option value="">Tous statuts de vérification</option>
         <option value="verifie">Vérifié (≥ 4 sources)</option>
+        <option value="source_officielle">Source officielle (Judilibre)</option>
         <option value="a_verifier">À vérifier</option>
+      </select>
+      <select id="f-jur">
+        <option value="">Toutes juridictions</option>
+      </select>
+      <select id="f-periode">
+        <option value="">Toutes périodes</option>
+        <option value="2018-9999">Depuis 2018 (ère CSE)</option>
+        <option value="2010-2017">2010 – 2017</option>
+        <option value="2000-2009">2000 – 2009</option>
+        <option value="1990-1999">1990 – 1999</option>
+        <option value="0-1989">Avant 1990</option>
+      </select>
+      <select id="f-tri">
+        <option value="desc">Tri : plus récentes d'abord</option>
+        <option value="asc">Tri : plus anciennes d'abord</option>
       </select>
       <input type="search" id="f-q" placeholder="Rechercher (mot-clé, numéro de pourvoi, article…)">
     </div>
 
+    <p class="count-line" id="count-line"></p>
     <div id="dlist"></div>
   </div>
 </section>
@@ -434,33 +467,73 @@ const THEMES = {
 const els = {
   list: document.getElementById('dlist'),
   stats: document.getElementById('stats'),
+  themeCounts: document.getElementById('theme-counts'),
+  countLine: document.getElementById('count-line'),
   theme: document.getElementById('f-theme'),
   sol: document.getElementById('f-solution'),
   verif: document.getElementById('f-verif'),
+  jur: document.getElementById('f-jur'),
+  periode: document.getElementById('f-periode'),
+  tri: document.getElementById('f-tri'),
   q: document.getElementById('f-q')
 };
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function safeUrl(u){ return /^https?:\/\//i.test(u||'') ? u : null; }
 
-function renderStats(){
-  const t = DECISIONS.length;
-  const r = DECISIONS.filter(d=>d.solution==='retenue').length;
-  const e = DECISIONS.filter(d=>d.solution==='ecartee').length;
-  const av = DECISIONS.filter(d=>d.statut_verification==='a_verifier').length;
+/* Filtre juridiction : options construites depuis la base (groupées) */
+function buildJurOptions(){
+  const cass = new Set(), ca = new Set(), autres = new Set();
+  DECISIONS.forEach(d=>{
+    const j = d.juridiction || '';
+    if(/^Cass/i.test(j)) cass.add(j);
+    else if(/^CA\b/i.test(j)) ca.add(j);
+    else if(j) autres.add(j);
+  });
+  const grp = (label, set) => set.size
+    ? `<optgroup label="${esc(label)}">` +
+      [...set].sort((a,b)=>a.localeCompare(b,'fr')).map(j=>`<option value="${esc(j)}">${esc(j)}</option>`).join('') +
+      `</optgroup>` : '';
+  els.jur.innerHTML = `<option value="">Toutes juridictions</option>`
+    + (ca.size ? `<option value="__CA__">Cours d'appel (toutes)</option>` : '')
+    + grp('Cour de cassation', cass) + grp("Cours d'appel", ca) + grp('Autres juridictions', autres);
+}
+
+function renderStats(out){
+  const t = out.length;
+  const r = out.filter(d=>d.solution==='retenue').length;
+  const e = out.filter(d=>d.solution==='ecartee').length;
+  const ac = out.filter(d=>d.solution==='a_confirmer').length;
+  const off = out.filter(d=>d.statut_verification==='source_officielle').length;
+  const av = out.filter(d=>d.statut_verification==='a_verifier').length;
   els.stats.innerHTML =
-    `<div class="stat"><b>${t}</b><span>décisions recensées</span></div>`+
+    `<div class="stat"><b>${t}</b><span>décision${t>1?'s':''} affichée${t>1?'s':''} / ${DECISIONS.length} recensées</span></div>`+
     `<div class="stat"><b style="color:var(--red)">${r}</b><span>entraves retenues</span></div>`+
     `<div class="stat"><b style="color:var(--green)">${e}</b><span>entraves écartées</span></div>`+
-    `<div class="stat"><b style="color:#b8860b">${av}</b><span>à vérifier</span></div>`;
+    (ac ? `<div class="stat"><b style="color:#6b7280">${ac}</b><span>solutions à confirmer</span></div>` : '')+
+    `<div class="stat"><b style="color:#075985">${off}</b><span>sources officielles</span></div>`+
+    (av ? `<div class="stat"><b style="color:#b8860b">${av}</b><span>à vérifier</span></div>` : '');
+}
+
+/* Compteurs par thème (cliquables : appliquent le filtre thème) */
+function renderThemeCounts(){
+  const counts = {};
+  DECISIONS.forEach(d=>{ counts[d.theme] = (counts[d.theme]||0)+1; });
+  els.themeCounts.innerHTML = Object.keys(THEMES).map(k =>
+    `<button class="tcount${els.theme.value===k?' active':''}" data-theme="${k}">${esc(THEMES[k])}<b>${counts[k]||0}</b></button>`
+  ).join('');
 }
 
 function card(d){
   const sol = d.solution==='retenue'
     ? '<span class="badge b-ret">Entrave retenue</span>'
-    : '<span class="badge b-eca">Entrave écartée</span>';
+    : d.solution==='ecartee'
+      ? '<span class="badge b-eca">Entrave écartée</span>'
+      : '<span class="badge b-ac">Solution à confirmer</span>';
   const ver = d.statut_verification==='verifie'
     ? `<span class="badge b-ver">✓ Vérifié · ${d.nb_sources} sources</span>`
-    : `<span class="badge b-av">⚠ À vérifier</span>`;
+    : d.statut_verification==='source_officielle'
+      ? `<span class="badge b-off">🏛 Source officielle</span>`
+      : `<span class="badge b-av">⚠ À vérifier</span>`;
   const srcs = (d.sources||[]).map(s=>{
     const u = safeUrl(s.url);
     return u ? `<a class="src" href="${esc(u)}" target="_blank" rel="noopener">${esc(s.nom)}</a>`
@@ -468,9 +541,10 @@ function card(d){
   }).join('');
   const note = d.note_verification
     ? `<div class="avnote">⚠ ${esc(d.note_verification)}</div>` : '';
+  const chambre = d.chambre && !/^Cass/.test(d.juridiction||'') ? ` (${esc(d.chambre)})` : '';
   return `<article class="dcard">
     <div class="dhead">
-      <span class="dref">${esc(d.juridiction)}, ${esc(d.date)}${d.numero? ', '+esc(d.numero):''}</span>
+      <span class="dref">${esc(d.juridiction)}${chambre}, ${esc(d.date)}${d.numero? ', '+esc(d.numero):''}</span>
       ${sol}${ver}<span class="badge b-th">${esc(THEMES[d.theme]||d.theme)}</span>
     </div>
     <div class="dmeta">${esc(d.sous_theme||'')}${(d.articles&&d.articles.length)? ' · Art. '+d.articles.map(esc).join(', '):''}</div>
@@ -482,24 +556,69 @@ function card(d){
 
 function sortKey(d){ return d.date_iso || ''; }
 
-function apply(){
+/* Chargement progressif */
+const PAGE = 30;
+let shown = PAGE;
+let currentOut = [];
+
+function filtered(){
   const th = els.theme.value, so = els.sol.value, ve = els.verif.value,
+        ju = els.jur.value, pe = els.periode.value,
         q = els.q.value.trim().toLowerCase();
+  let pMin = 0, pMax = 9999;
+  if(pe){ const p = pe.split('-'); pMin = +p[0]; pMax = +p[1]; }
   const out = DECISIONS.filter(d=>{
     if(th && d.theme!==th) return false;
     if(so && d.solution!==so) return false;
     if(ve && d.statut_verification!==ve) return false;
+    if(ju){
+      if(ju==='__CA__'){ if(!/^CA\b/i.test(d.juridiction||'')) return false; }
+      else if(d.juridiction!==ju) return false;
+    }
+    if(pe){
+      const y = d.date_iso ? +d.date_iso.slice(0,4) : NaN;
+      if(isNaN(y) || y < pMin || y > pMax) return false;
+    }
     if(q){
-      const hay = [d.juridiction,d.date,d.numero,d.resume,d.sous_theme,(d.articles||[]).join(' ')].join(' ').toLowerCase();
+      const hay = [d.juridiction,d.chambre,d.date,d.numero,d.resume,d.sous_theme,(d.articles||[]).join(' ')].join(' ').toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
-  }).sort((a,b)=> sortKey(b).localeCompare(sortKey(a)));
-  els.list.innerHTML = out.length ? out.map(card).join('') : '<div class="empty">Aucune décision ne correspond à ces filtres.</div>';
+  });
+  const asc = els.tri.value==='asc';
+  out.sort((a,b)=> asc ? sortKey(a).localeCompare(sortKey(b)) : sortKey(b).localeCompare(sortKey(a)));
+  return out;
+}
+
+function renderList(){
+  const out = currentOut;
+  const slice = out.slice(0, shown);
+  els.countLine.textContent = out.length
+    ? `${Math.min(shown,out.length)} décision${out.length>1?'s':''} affichée${out.length>1?'s':''} sur ${out.length}`
+    : '';
+  let html = slice.length ? slice.map(card).join('') : '<div class="empty">Aucune décision ne correspond à ces filtres.</div>';
+  if(out.length > shown){
+    html += `<button class="loadmore" id="loadmore">Afficher plus (${out.length - shown} restantes)</button>`;
+  }
+  els.list.innerHTML = html;
+  const lm = document.getElementById('loadmore');
+  if(lm) lm.addEventListener('click', ()=>{ shown += 50; renderList(); });
+}
+
+function apply(resetShown){
+  if(resetShown !== false) shown = PAGE;
+  currentOut = filtered();
+  renderStats(currentOut);
+  renderThemeCounts();
+  renderList();
 }
 ['change','input'].forEach(ev=>{
-  els.theme.addEventListener(ev,apply); els.sol.addEventListener(ev,apply);
-  els.verif.addEventListener(ev,apply); els.q.addEventListener(ev,apply);
+  [els.theme,els.sol,els.verif,els.jur,els.periode,els.tri,els.q].forEach(el=>el.addEventListener(ev,()=>apply()));
+});
+els.themeCounts.addEventListener('click', e=>{
+  const b = e.target.closest('.tcount'); if(!b) return;
+  els.theme.value = (els.theme.value===b.dataset.theme) ? '' : b.dataset.theme;
+  apply();
 });
 
 /* ==== ONGLETS ==== */
@@ -510,7 +629,7 @@ document.getElementById('tabs').addEventListener('click', e=>{
   scrollTo({top:0,behavior:'smooth'});
 });
 
-renderStats(); apply();
+buildJurOptions(); apply();
 </script>
 </body>
 </html>
