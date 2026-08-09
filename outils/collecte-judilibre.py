@@ -386,6 +386,37 @@ def construire_resume(dec):
             "extrait_motifs")
 
 
+# L'API code les cours d'appel ("ca_aix_provence") : table de correspondance
+NOMS_CA = {
+    "agen": "Agen", "aix_provence": "Aix-en-Provence", "amiens": "Amiens",
+    "angers": "Angers", "basse_terre": "Basse-Terre", "bastia": "Bastia",
+    "besancon": "Besançon", "bordeaux": "Bordeaux", "bourges": "Bourges",
+    "caen": "Caen", "cayenne": "Cayenne", "chambery": "Chambéry",
+    "colmar": "Colmar", "dijon": "Dijon", "douai": "Douai",
+    "fort_de_france": "Fort-de-France", "grenoble": "Grenoble",
+    "limoges": "Limoges", "lyon": "Lyon", "metz": "Metz",
+    "montpellier": "Montpellier", "nancy": "Nancy", "nimes": "Nîmes",
+    "noumea": "Nouméa", "orleans": "Orléans", "papeete": "Papeete",
+    "paris": "Paris", "pau": "Pau", "poitiers": "Poitiers",
+    "reims": "Reims", "rennes": "Rennes", "riom": "Riom", "rouen": "Rouen",
+    "saint_denis_reunion": "Saint-Denis de La Réunion",
+    "st_denis_reunion": "Saint-Denis de La Réunion",
+    "toulouse": "Toulouse", "versailles": "Versailles",
+}
+
+
+def nom_cour_appel(lieu):
+    """'ca_aix_provence' ou 'Cour d'appel de Nîmes' -> 'Aix-en-Provence' / 'Nîmes'."""
+    lieu = (lieu or "").strip()
+    code = re.sub(r"^ca_", "", lieu.lower())
+    if code in NOMS_CA:
+        return NOMS_CA[code]
+    lieu = re.sub(r"(?i)^cour d'appel (de |d')", "", lieu).strip()
+    if re.fullmatch(r"[a-z_]+", lieu):
+        return lieu.replace("_", " ").title()
+    return lieu
+
+
 def libelle_juridiction(dec):
     j = (dec.get("jurisdiction") or "").lower()
     chambre = dec.get("chamber") or ""
@@ -397,8 +428,7 @@ def libelle_juridiction(dec):
             return "Cass. soc.", "Chambre sociale"
         return "Cass.", chambre or None
     if j == "ca":
-        lieu = dec.get("location") or ""
-        lieu = re.sub(r"(?i)^cour d'appel (de |d')", "", lieu).strip()
+        lieu = nom_cour_appel(dec.get("location"))
         return (f"CA {lieu}" if lieu else "CA"), chambre or None
     return (dec.get("jurisdiction") or "Juridiction inconnue"), chambre or None
 
