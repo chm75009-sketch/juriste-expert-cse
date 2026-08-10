@@ -31,7 +31,14 @@
   .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--ink)}
   .brand .dot{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--indigo),var(--indigo2));display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(79,70,229,.4);color:#fff;font-size:14px}
   /* Onglets */
+  /* Barre d'onglets collante : la navigation reste à portée de clic partout
+     dans la page, y compris dans l'application installée sur téléphone où le
+     navigateur n'affiche aucun bouton « Retour ». */
+  .tabsbar{position:sticky;top:var(--h-entete,64px);z-index:150;background:rgba(247,248,252,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  @media(max-width:560px){ .nav .baseline{display:none} }
   .tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 0;-webkit-overflow-scrolling:touch}
+  .tab.retour{background:var(--indigo-soft);border-color:var(--indigo);color:var(--indigo-ink)}
+  .tab.retour:hover{background:var(--indigo);color:#fff}
   .tab{flex:none;font-size:14px;font-weight:700;color:var(--body);background:#fff;border:1px solid var(--line);padding:9px 16px;border-radius:12px;cursor:pointer;transition:.15s}
   .tab:hover{border-color:var(--indigo)}
   .tab.active{background:var(--indigo);border-color:var(--indigo);color:#fff;box-shadow:0 6px 18px rgba(79,70,229,.35)}
@@ -111,7 +118,7 @@
 <header class="top">
   <div class="wrap nav">
     <div class="brand"><span class="dot">⚖</span> Juriste&nbsp;Expert&nbsp;CSE</div>
-    <div style="font-size:13px;color:var(--dim);font-weight:700">Clarté — RTH NETGOCE</div>
+    <div class="baseline" style="font-size:13px;color:var(--dim);font-weight:700">Clarté — RTH NETGOCE</div>
   </div>
 </header>
 
@@ -122,14 +129,17 @@
   <div class="notice">⚠️ <b>Méthode de fiabilité à deux niveaux :</b> les <b>arrêts commentés</b> sont recoupés dans plusieurs sources sérieuses — confirmés par au moins <b>4 sources concordantes</b> ils portent la mention <span class="badge b-ver">✓ Vérifié</span>, sinon <span class="badge b-av">À vérifier</span>. Les décisions collectées dans la base publique <b>Judilibre</b> (Cour de cassation) portent la mention <span class="badge b-off">🏛 Source officielle</span> : texte authentique, mais solution et thème détectés automatiquement (« solution à confirmer » en cas d'ambiguïté). Cette application est une information juridique générale, pas un conseil juridique individualisé.</div>
 </div>
 
-<div class="wrap">
+<div class="tabsbar">
+ <div class="wrap">
   <nav class="tabs" id="tabs">
+    <button class="tab retour" id="btn-retour" type="button" hidden>← Retour</button>
     <button class="tab active" data-mod="jurisprudence">⚖️ Délits d'entrave — jurisprudence</button>
     <button class="tab" data-mod="composition">👥 Composition & attributions</button>
     <button class="tab" data-mod="consultations">📋 Les 3 consultations obligatoires</button>
     <button class="tab" data-mod="bdese">🗂️ BDESE</button>
     <button class="tab" data-mod="sanctions">🚨 Textes & sanctions</button>
   </nav>
+ </div>
 </div>
 
 <!-- ============ MODULE JURISPRUDENCE ============ -->
@@ -667,13 +677,64 @@ els.themeCounts.addEventListener('click', e=>{
   apply();
 });
 
-/* ==== ONGLETS ==== */
+/* ==== ONGLETS ET NAVIGATION ====
+   Chaque onglet est une adresse (#composition, #bdese…) : le bouton
+   « Retour » du navigateur revient à l'onglet précédent au lieu de quitter
+   le site, les liens sont partageables, et un bouton « ← Retour » est
+   affiché dans la barre pour l'application installée sur téléphone, qui n'a
+   pas de barre de navigation. */
+const MODULES = ['jurisprudence','composition','consultations','bdese','sanctions'];
+const btnRetour = document.getElementById('btn-retour');
+const barreOnglets = document.querySelector('.tabsbar');
+const entete = document.querySelector('header.top');
+let profondeur = 0;
+
+/* La hauteur de l'en-tête varie selon la largeur de l'écran : on la mesure
+   plutôt que de la coder en dur, sinon la barre d'onglets passe dessous. */
+function majHauteurEntete(){
+  document.documentElement.style.setProperty('--h-entete', entete.offsetHeight + 'px');
+}
+majHauteurEntete();
+addEventListener('resize', majHauteurEntete);
+
+function majRetour(){ btnRetour.hidden = profondeur === 0; }
+
+function ouvrirModule(mod, opts){
+  if(!MODULES.includes(mod)) mod = MODULES[0];
+  const empiler = !(opts && opts.empiler === false);
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.mod===mod));
+  document.querySelectorAll('.module').forEach(m=>m.classList.toggle('visible', m.id==='mod-'+mod));
+  if(empiler){
+    history.pushState({mod}, '', '#'+mod);
+    profondeur++;
+  }
+  majRetour();
+  const cible = Math.max(0, barreOnglets.offsetTop - entete.offsetHeight);
+  scrollTo({top: cible, behavior: opts && opts.doux === false ? 'auto' : 'smooth'});
+}
+
 document.getElementById('tabs').addEventListener('click', e=>{
-  const b = e.target.closest('.tab'); if(!b) return;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===b));
-  document.querySelectorAll('.module').forEach(m=>m.classList.toggle('visible', m.id==='mod-'+b.dataset.mod));
-  scrollTo({top:0,behavior:'smooth'});
+  const b = e.target.closest('.tab[data-mod]'); if(!b) return;
+  if(b.classList.contains('active')) return;      // déjà ouvert : pas de doublon d'historique
+  ouvrirModule(b.dataset.mod);
 });
+
+btnRetour.addEventListener('click', ()=>history.back());
+
+addEventListener('popstate', e=>{
+  const mod = (e.state && e.state.mod) || location.hash.slice(1) || MODULES[0];
+  profondeur = Math.max(0, profondeur - 1);
+  ouvrirModule(mod, {empiler:false, doux:false});
+});
+
+/* Ouverture directe sur un onglet via l'adresse (#bdese, #sanctions…) */
+(function navigationInitiale(){
+  const demande = location.hash.slice(1);
+  const mod = MODULES.includes(demande) ? demande : MODULES[0];
+  history.replaceState({mod}, '', '#'+mod);
+  if(mod !== MODULES[0]) ouvrirModule(mod, {empiler:false, doux:false});
+  majRetour();
+})();
 
 /* ==== DÉMARRAGE ====
    Les gestionnaires ci-dessus (onglets, filtres) sont déjà posés : la page
