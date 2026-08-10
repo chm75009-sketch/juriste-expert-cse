@@ -57,6 +57,7 @@
   .tcount.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
   .tcount b{color:var(--indigo);margin-left:4px}
   .tcount.active b{color:#fff}
+  .tcount.vide{opacity:.45}
   /* Chargement progressif */
   .loadmore{display:block;margin:18px auto 0;font:inherit;font-size:14px;font-weight:800;color:var(--indigo);background:var(--indigo-soft);border:1px solid var(--indigo);border-radius:12px;padding:11px 26px;cursor:pointer;transition:.15s}
   .loadmore:hover{background:var(--indigo);color:#fff}
@@ -517,8 +518,22 @@ function buildJurOptions(){
       [...set].sort((a,b)=>a.localeCompare(b,'fr')).map(j=>`<option value="${esc(j)}">${esc(j)}</option>`).join('') +
       `</optgroup>` : '';
   els.jur.innerHTML = `<option value="">Toutes juridictions</option>`
-    + (ca.size ? `<option value="__CA__">Cours d'appel (toutes)</option>` : '')
-    + grp('Cour de cassation', cass) + grp("Cours d'appel", ca) + grp('Autres juridictions', autres);
+    + (cass.size ? `<option value="__CASS__">Cour de cassation — toutes chambres</option>` : '')
+    + (ca.size ? `<option value="__CA__">Cours d'appel — toutes</option>` : '')
+    + (autres.size ? `<option value="__AUTRES__">Autres juridictions — toutes</option>` : '')
+    + grp('Cour de cassation — une chambre', cass)
+    + grp("Cours d'appel — une cour", ca)
+    + grp('Autres juridictions', autres);
+}
+
+/* Un choix de juridiction : global (__CASS__, __CA__, __AUTRES__) ou précis */
+function matchJur(d, ju){
+  if(!ju) return true;
+  const j = d.juridiction || '';
+  if(ju==='__CASS__') return /^Cass/i.test(j);
+  if(ju==='__CA__') return /^CA\b/i.test(j);
+  if(ju==='__AUTRES__') return !/^Cass/i.test(j) && !/^CA\b/i.test(j);
+  return j===ju;
 }
 
 function renderStats(out){
@@ -537,12 +552,14 @@ function renderStats(out){
     (av ? `<div class="stat"><b style="color:#b8860b">${av}</b><span>à vérifier</span></div>` : '');
 }
 
-/* Compteurs par thème (cliquables : appliquent le filtre thème) */
+/* Compteurs par thème (cliquables : appliquent le filtre thème).
+   Ils comptent sur le résultat des AUTRES filtres actifs — juridiction,
+   solution, période, recherche — pour rester cohérents avec la liste. */
 function renderThemeCounts(){
   const counts = {};
-  DECISIONS.forEach(d=>{ counts[d.theme] = (counts[d.theme]||0)+1; });
+  selection({ignoreTheme:true}).forEach(d=>{ counts[d.theme] = (counts[d.theme]||0)+1; });
   els.themeCounts.innerHTML = Object.keys(THEMES).map(k =>
-    `<button class="tcount${els.theme.value===k?' active':''}" data-theme="${k}">${esc(THEMES[k])}<b>${counts[k]||0}</b></button>`
+    `<button class="tcount${els.theme.value===k?' active':''}${counts[k]?'':' vide'}" data-theme="${k}">${esc(THEMES[k])}<b>${counts[k]||0}</b></button>`
   ).join('');
 }
 
@@ -584,20 +601,20 @@ const PAGE = 30;
 let shown = PAGE;
 let currentOut = [];
 
-function filtered(){
+/* Applique les filtres. opts.ignoreTheme : ignorer le seul filtre thème
+   (sert aux compteurs par thème, qui doivent rester cliquables). */
+function selection(opts){
+  const ignoreTheme = !!(opts && opts.ignoreTheme);
   const th = els.theme.value, so = els.sol.value, ve = els.verif.value,
         ju = els.jur.value, pe = els.periode.value,
         q = els.q.value.trim().toLowerCase();
   let pMin = 0, pMax = 9999;
   if(pe){ const p = pe.split('-'); pMin = +p[0]; pMax = +p[1]; }
-  const out = DECISIONS.filter(d=>{
-    if(th && d.theme!==th) return false;
+  return DECISIONS.filter(d=>{
+    if(!ignoreTheme && th && d.theme!==th) return false;
     if(so && d.solution!==so) return false;
     if(ve && d.statut_verification!==ve) return false;
-    if(ju){
-      if(ju==='__CA__'){ if(!/^CA\b/i.test(d.juridiction||'')) return false; }
-      else if(d.juridiction!==ju) return false;
-    }
+    if(!matchJur(d, ju)) return false;
     if(pe){
       const y = d.date_iso ? +d.date_iso.slice(0,4) : NaN;
       if(isNaN(y) || y < pMin || y > pMax) return false;
@@ -608,6 +625,10 @@ function filtered(){
     }
     return true;
   });
+}
+
+function filtered(){
+  const out = selection();
   const asc = els.tri.value==='asc';
   out.sort((a,b)=> asc ? sortKey(a).localeCompare(sortKey(b)) : sortKey(b).localeCompare(sortKey(a)));
   return out;
