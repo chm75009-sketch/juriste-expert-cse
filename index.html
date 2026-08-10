@@ -478,10 +478,12 @@
   </div>
 </footer>
 
-<script src="jurisprudence.js"></script>
+<!-- Base chargée en async : les onglets et les modules statiques restent
+     utilisables pendant le téléchargement (le fichier pèse plusieurs Mo). -->
+<script src="jurisprudence.js" async id="js-donnees"></script>
 <script>
 /* ==== RENDU DU MODULE JURISPRUDENCE ==== */
-const DECISIONS = (typeof JURISPRUDENCE !== 'undefined') ? JURISPRUDENCE : [];
+let DECISIONS = [];
 const THEMES = {
   mise_en_place: "Mise en place / élections",
   consultations_bdese: "Information-consultation & BDESE",
@@ -673,7 +675,33 @@ document.getElementById('tabs').addEventListener('click', e=>{
   scrollTo({top:0,behavior:'smooth'});
 });
 
-buildJurOptions(); apply();
+/* ==== DÉMARRAGE ====
+   Les gestionnaires ci-dessus (onglets, filtres) sont déjà posés : la page
+   répond immédiatement. Seule la liste des décisions attend les données. */
+const CHAMPS = [els.theme, els.sol, els.verif, els.jur, els.periode, els.tri, els.q];
+
+function demarrer(){
+  DECISIONS = (typeof JURISPRUDENCE !== 'undefined') ? JURISPRUDENCE : [];
+  CHAMPS.forEach(el=>{ el.disabled = false; });
+  buildJurOptions();
+  apply();
+}
+
+function echecChargement(){
+  els.list.innerHTML = '<div class="empty">La base de jurisprudence n\'a pas pu être chargée. '+
+    'Vérifiez votre connexion, puis rechargez la page.</div>';
+}
+
+if(typeof JURISPRUDENCE !== 'undefined'){
+  demarrer();
+}else{
+  CHAMPS.forEach(el=>{ el.disabled = true; });
+  els.list.innerHTML = '<div class="empty">Chargement de la base de jurisprudence… '+
+    'Les autres onglets sont déjà consultables.</div>';
+  const scriptDonnees = document.getElementById('js-donnees');
+  scriptDonnees.addEventListener('load', demarrer);
+  scriptDonnees.addEventListener('error', echecChargement);
+}
 </script>
 </body>
 </html>

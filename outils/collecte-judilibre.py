@@ -502,7 +502,11 @@ def lire_base(chemin):
 
 
 def ecrire_base(chemin, fiches):
-    corps = json.dumps(fiches, ensure_ascii=False, indent=2)
+    """Écrit une fiche par ligne, sans indentation interne : le fichier est
+    nettement plus léger à télécharger et à analyser par le navigateur, tout
+    en gardant des différences git lisibles (une ligne = une décision)."""
+    lignes = [json.dumps(f, ensure_ascii=False, separators=(",", ":")) for f in fiches]
+    corps = "[\n" + ",\n".join(lignes) + "\n]" if lignes else "[]"
     with open(chemin, "w", encoding="utf-8") as f:
         f.write(ENTETE_JS + corps + ";\n")
 
