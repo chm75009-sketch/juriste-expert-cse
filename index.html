@@ -73,6 +73,28 @@
   .filters{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 20px;align-items:center}
   .filters select,.filters input{font:inherit;font-size:14px;padding:9px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--ink)}
   .filters input{flex:1;min-width:200px}
+
+  /* Recherche assistée : dire son sujet en français, obtenir les formules du corpus */
+  .assist{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 14px;background:#fbfbfe}
+  .assist-l{display:block;font-weight:600;margin-bottom:8px}
+  .assist-ligne{display:flex;gap:10px;flex-wrap:wrap}
+  .assist-ligne input{flex:1;min-width:220px;font:inherit;font-size:14px;padding:9px 12px;
+    border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--ink)}
+  .assist-ligne button{font:inherit;font-size:14px;font-weight:600;padding:9px 16px;border-radius:11px;
+    border:1px solid #4f46e5;background:#4f46e5;color:#fff;cursor:pointer}
+  .assist-ligne button:hover{filter:brightness(1.08)}
+  .assist-aide{margin:8px 0 0;font-size:13px;line-height:1.5;color:var(--muted)}
+  #mots-zone{margin-top:12px}
+  #mots-zone .grp{margin:0 0 10px}
+  #mots-zone .grp-t{font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 6px;
+    text-transform:uppercase;letter-spacing:.04em}
+  #mots-zone .mots{display:flex;flex-wrap:wrap;gap:8px}
+  #mots-zone .mot{font:inherit;font-size:13.5px;padding:7px 12px;border-radius:99px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:var(--ink);text-align:left}
+  #mots-zone .mot:hover{border-color:#4f46e5;color:#4f46e5}
+  #mots-zone .mot b{font-weight:600}
+  #mots-zone .mot .n{color:var(--muted);font-size:12px;margin-left:6px}
+  #mots-zone .rien{font-size:13.5px;color:var(--muted);line-height:1.55}
   /* Cartes décisions */
   .dcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-bottom:14px;box-shadow:var(--shadow)}
   .dhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
@@ -151,6 +173,18 @@
     <div class="stats" id="stats"></div>
 
     <div class="theme-counts" id="theme-counts"></div>
+
+    <div class="assist">
+      <label class="assist-l" for="f-sujet">Vous ne savez pas quels mots employer ?</label>
+      <div class="assist-ligne">
+        <input type="search" id="f-sujet" placeholder="ex. licenciement d'un élu sans autorisation, refus de communiquer la BDESE">
+        <button type="button" id="btn-mots">Trouver les bons mots-clés</button>
+      </div>
+      <p class="assist-aide">Décrivez votre sujet en français courant. L'application lit les 4&nbsp;522 décisions
+      de la base et vous rend les formules que les juges emploient réellement, avec le nombre de décisions
+      derrière chacune. Cliquez sur une formule : elle devient votre recherche.</p>
+      <div id="mots-zone"></div>
+    </div>
 
     <div class="filters">
       <select id="f-theme">
@@ -541,7 +575,10 @@ const els = {
   jur: document.getElementById('f-jur'),
   periode: document.getElementById('f-periode'),
   tri: document.getElementById('f-tri'),
-  q: document.getElementById('f-q')
+  q: document.getElementById('f-q'),
+  sujet: document.getElementById('f-sujet'),
+  btnMots: document.getElementById('btn-mots'),
+  motsZone: document.getElementById('mots-zone')
 };
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function safeUrl(u){ return /^https?:\/\//i.test(u||'') ? u : null; }
@@ -765,6 +802,346 @@ addEventListener('popstate', e=>{
   if(mod !== MODULES[0]) ouvrirModule(mod, {empiler:false, doux:false});
   majRetour();
 })();
+
+/* ====================================================================
+   RECHERCHE ASSISTÉE — dire son sujet en français, obtenir les formules
+
+   Le juriste sait ce qu'il cherche ; il ne sait pas sous quels mots la
+   base l'a rangé. « Licenciement d'un élu sans autorisation » ne se
+   trouve pas tel quel : les décisions disent « salarié protégé »,
+   « autorisation de l'inspecteur du travail », « mandat en cours ».
+   Écrire la bonne formule suppose de connaître le corpus — c'est
+   précisément ce que l'on n'a pas quand on commence.
+
+   Tout se calcule ici, sur les décisions déjà chargées : aucune requête,
+   aucune attente. On ne devine pas les mots, on les RELÈVE — ce sont
+   ceux que les décisions emploient, et le nombre affiché est le nombre
+   de décisions derrière chacun.
+   ==================================================================== */
+
+/* Sans accents ni ponctuation : « BDESE », « bdese » et « B.D.E.S.E. »
+   désignent la même chose, et le corpus écrit les trois. */
+function motsNet(s){
+  return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+}
+
+/* Les mots vides — ceux qui n'apprennent rien sur le sujet. La liste est
+   courte à dessein : mieux vaut un mot vide de trop dans une formule
+   qu'un mot utile écarté. */
+var VIDES = new Set(('le la les un une des du de d au aux a et ou en dans par pour sur sous ' +
+  'avec sans que qui quoi dont est sont etre ete avoir eu il elle ils elles on ne pas plus ' +
+  'ce cet cette ces son sa ses leur leurs se s y l n c qu si mais donc or ni car fait faire ' +
+  'lorsque apres avant entre chez vers tout tous toute toutes meme aussi tres bien peut peuvent ' +
+  'doit doivent alors ainsi cas lors etait sera seront leurs cette').split(' '));
+
+/* La racine d'un mot : les huit premières lettres suffisent à réunir
+   « consultation », « consulter » et « consultée » sans confondre des
+   mots distincts. Ce n'est pas une lemmatisation — c'en est
+   l'approximation la moins coûteuse, et elle se vérifie à l'usage. */
+function racine(m){ return m.length > 8 ? m.slice(0, 8) : m; }
+
+/* Le gabarit des fiches collectées, et pourquoi il faut le retirer.
+
+   Sur 4 522 fiches, 4 478 viennent de la collecte automatique. Leur
+   sous-thème suit un gabarit — « Collecte Judilibre — indices : réunion,
+   convocation — dispositif : dispositif ambigu » — et leur résumé
+   commence par « [Extrait des motifs — résumé rédigé à venir] MOTIFS : ».
+
+   Laissé tel quel, ce gabarit devient la réponse : la première épreuve
+   rendait « expertise dispositif » dans 178 décisions et « collecte
+   judilibre indices expertise » dans 78. Des formules exactes, comptées
+   juste, et parfaitement inutiles — elles décrivent l'outil de collecte,
+   pas la jurisprudence.
+
+   On retire donc l'ossature du gabarit et l'on garde ce qu'il porte : les
+   indices, qui sont de vrais mots-clés, et le texte des motifs. */
+var GABARIT = [
+  /Collecte\s+Judilibre\s*[—-]\s*indices\s*:/gi,
+  /[—-]\s*dispositif\s*:[^—\n]*/gi,
+  /\[Extrait des motifs[^\]]*\]/gi,
+  /\bMOTIFS\s*:/gi
+];
+var BRUIT = new Set(('collecte judilibre indices dispositif ambigu extrait motifs resume redige ' +
+  'venir rectifiee societe monsieur madame arret jugement audience greffier president ' +
+  'condamne ordonne rejette deboute').split(' '));
+
+function sansGabarit(t){
+  var out = String(t||'');
+  GABARIT.forEach(function(r){ out = out.replace(r, ' '); });
+  return out;
+}
+
+/* Le texte d'une décision pour la recherche assistée : le gabarit ôté,
+   les articles conservés. La recherche par mot-clé, elle, continue
+   d'interroger le texte entier — on ne retire rien à ce que l'on cherche,
+   seulement à ce que l'on propose. */
+function texteDe(d){
+  return motsNet([sansGabarit(d.sous_theme), sansGabarit(d.resume), (d.articles||[]).join(' ')].join(' '));
+}
+
+/* Le texte découpé en segments : une formule ne traverse ni une virgule
+   ni un point. Sans cela l'on proposait « statut protecteur, autorisation »,
+   suite de mots qu'aucune décision n'écrit d'un trait — et que le champ
+   de recherche ne retrouvait donc pas. */
+function segments(d){
+  return sansGabarit([d.sous_theme, d.resume].join(' . '))
+    .split(/[.,;:()«»"'\[\]—–]+/)
+    .map(motsNet).filter(function(x){ return x.length > 4; });
+}
+
+/* L'index, construit une seule fois. */
+var INDEX = null;
+function index(){
+  if(INDEX) return INDEX;
+  INDEX = DECISIONS.map(function(d){
+    var t = texteDe(d);
+    var mots = t.split(' ').filter(function(m){ return m.length>2 && !VIDES.has(m) && !BRUIT.has(m); });
+    return { d: d, t: t, seg: segments(d), racines: new Set(mots.map(racine)) };
+  });
+  return INDEX;
+}
+
+/* Les décisions qui parlent du sujet : celles qui portent au moins une
+   des racines demandées. Le nombre de racines touchées sert au
+   classement — une décision qui les porte toutes vaut mieux qu'une qui
+   n'en porte qu'une. */
+/* Combien de décisions portent chaque racine : c'est ce qui distingue le
+   mot qui cherche du mot qui accompagne. */
+function frequences(racines){
+  var df = new Map();
+  racines.forEach(function(r){ df.set(r, 0); });
+  index().forEach(function(e){
+    racines.forEach(function(r){ if(e.racines.has(r)) df.set(r, df.get(r)+1); });
+  });
+  return df;
+}
+
+/* Les décisions qui parlent du sujet.
+
+   Retenir toute décision portant N'IMPORTE lequel des mots demandés est
+   l'erreur qui saute aux yeux à l'essai : « refus de communiquer la
+   BDESE » ramenait 192 décisions — toutes celles qui disent « refus »,
+   quel qu'en soit l'objet — et les formules rendues parlaient de refus de
+   paiement ou de refus de travail. Le mot qui cherche était « BDESE », et
+   il était noyé.
+
+   On part donc du mot le plus RARE du sujet : c'est lui qui porte la
+   demande. Les autres servent au classement — une décision qui les porte
+   tous vaut mieux qu'une qui n'a que le mot rare. Si ce mot ne ramène
+   presque rien, on élargit au suivant, en le disant. */
+function pertinentes(racines){
+  var df = frequences(racines);
+  var tries = [];
+  df.forEach(function(n, r){ if(n > 0) tries.push({ r: r, n: n }); });
+  tries.sort(function(a,b){ return a.n - b.n; });
+  if(!tries.length) return [];
+
+  var pivot = tries[0], elargi = null;
+  var MINI = 5;
+  for(var i=0;i<tries.length;i++){
+    if(tries[i].n >= MINI){ pivot = tries[i]; elargi = (i > 0) ? tries[0] : null; break; }
+    pivot = tries[i];
+  }
+
+  var out = [];
+  index().forEach(function(e){
+    if(!e.racines.has(pivot.r)) return;
+    var n = 0;
+    racines.forEach(function(r){ if(e.racines.has(r)) n++; });
+    out.push({ e: e, n: n });
+  });
+  out.sort(function(a,b){ return b.n - a.n; });
+  out.pivot = pivot;
+  out.elargi = elargi;
+  return out;
+}
+
+/* Les formules : les suites de deux à quatre mots que ces décisions
+   emploient, comptées en NOMBRE DE DÉCISIONS — non en occurrences, pour
+   qu'une décision bavarde ne l'emporte pas sur dix décisions sobres.
+
+   Une formule n'est retenue que si elle contient un mot du sujet : sans
+   cela on remonterait le vocabulaire commun à toute la base — « la cour
+   d'appel », « la chambre sociale » — qui n'apprend rien. */
+function formules(sel, racines){
+  var compte = new Map();
+  var MAXI = 400;                       /* au-delà, le gain est nul */
+  sel.slice(0, MAXI).forEach(function(x){
+    var vues = new Set();
+    x.e.seg.forEach(function(segment){
+      var mots = segment.split(' ');
+      for(var i=0;i<mots.length;i++){
+        if(VIDES.has(mots[i]) || BRUIT.has(mots[i]) || mots[i].length<3) continue;
+        for(var l=2;l<=4 && i+l<=mots.length;l++){
+          var suite = mots.slice(i,i+l);
+          var fin = suite[suite.length-1];
+          if(VIDES.has(fin) || BRUIT.has(fin) || fin.length<3) continue;
+          var propre = true, touche = false;
+          for(var k=0;k<suite.length;k++){
+            if(BRUIT.has(suite[k])) { propre = false; break; }
+            if(racines.has(racine(suite[k]))) touche = true;
+          }
+          if(!propre || !touche) continue;
+          var f = suite.join(' ');
+          if(vues.has(f)) continue;
+          vues.add(f);
+          compte.set(f, (compte.get(f)||0)+1);
+        }
+      }
+    });
+  });
+
+  /* Le classement : le nombre de décisions d'abord, la longueur ensuite —
+     une formule de trois mots est plus utile qu'un couple, à fréquence
+     égale. Les formules contenues dans une autre, à compte égal, sont
+     écartées : « autorisation de l inspecteur » absorbe « autorisation de ». */
+  var liste = [];
+  compte.forEach(function(n, f){ if(n>=2) liste.push({ f: f, n: n, mots: f.split(' ').length }); });
+  liste.sort(function(a,b){ return b.n - a.n || b.mots - a.mots || a.f.localeCompare(b.f); });
+  var garde = [];
+  liste.forEach(function(x){
+    for(var i=0;i<garde.length;i++) if(garde[i].n === x.n && garde[i].f.indexOf(x.f) >= 0) return;
+    garde.push(x);
+  });
+  return garde.slice(0, 12);
+}
+
+/* Ce que la formule donnera dans la recherche : le champ interroge le
+   texte brut, accents compris. On retrouve donc, dans une décision qui
+   la porte, la forme réellement écrite — sans quoi l'on proposerait
+   « egalite professionnelle » là où la base écrit « égalité
+   professionnelle », et le clic ne ramènerait rien. */
+function formeEcrite(f, sel){
+  var cible = f.split(' ');
+  for(var s=0; s<sel.length && s<80; s++){
+    var brut = sansGabarit([sel[s].e.d.sous_theme, sel[s].e.d.resume].join(' ¶ '));
+    var mots = brut.split(/\s+/).filter(Boolean);
+    for(var i=0;i+cible.length<=mots.length;i++){
+      var fenetre = mots.slice(i, i+cible.length);
+      /* La forme écrite se rend sans sa ponctuation de bord : la base
+         écrit « (élu Titulaire » au fil d'une phrase, et la parenthèse
+         ouvrante n'appartient pas à la formule. */
+      if(motsNet(fenetre.join(' ')) === f)
+        return fenetre.join(' ').replace(/^[^\wÀ-ÿ]+/, '').replace(/[^\wÀ-ÿ]+$/, '');
+    }
+  }
+  return f;
+}
+
+/* Les thèmes et les articles du sous-ensemble : deux entrées de plus,
+   souvent les plus rapides — un thème cliqué vaut mieux qu'une formule
+   approchée, et un article visé par trente décisions dit à lui seul où
+   le sujet se joue. */
+function contexte(sel){
+  var themes = new Map(), articles = new Map();
+  sel.slice(0, 400).forEach(function(x){
+    var d = x.e.d;
+    if(d.theme) themes.set(d.theme, (themes.get(d.theme)||0)+1);
+    (d.articles||[]).forEach(function(a){ articles.set(a, (articles.get(a)||0)+1); });
+  });
+  function tri(m){ var o=[]; m.forEach(function(n,k){ o.push([k,n]); });
+    return o.sort(function(a,b){ return b[1]-a[1]; }); }
+  return { themes: tri(themes).slice(0,4), articles: tri(articles).slice(0,8) };
+}
+
+var LIBELLE_THEME = {
+  mise_en_place: 'Mise en place / élections',
+  consultations_bdese: 'Information-consultation & BDESE',
+  fonctionnement_moyens: 'Fonctionnement & moyens',
+  statut_protecteur_principes: 'Statut protecteur & principes'
+};
+
+function trouverMots(){
+  if(!DECISIONS.length){
+    els.motsZone.innerHTML = '<p class="rien">Les décisions ne sont pas encore chargées — un instant.</p>';
+    return;
+  }
+  var sujet = els.sujet.value.trim();
+  if(!sujet){
+    els.motsZone.innerHTML = '<p class="rien">Décrivez d\'abord votre sujet, même maladroitement : ' +
+      'c\'est le rôle de cette aide de traduire vos mots en ceux du corpus.</p>';
+    return;
+  }
+  var demandes = motsNet(sujet).split(' ').filter(function(m){ return m.length>2 && !VIDES.has(m); });
+  if(!demandes.length){
+    els.motsZone.innerHTML = '<p class="rien">Ces mots sont trop courants pour chercher. ' +
+      'Ajoutez le terme qui vous intéresse vraiment — « autorisation », « expertise », « budget », ' +
+      '« convocation »…</p>';
+    return;
+  }
+  var racines = new Set(demandes.map(racine));
+  var sel = pertinentes(racines);
+
+  if(!sel.length){
+    els.motsZone.innerHTML = '<p class="rien"><b>Aucune décision de la base ne porte ces mots.</b> ' +
+      'Ce n\'est pas la preuve qu\'il n\'existe rien : cette base recense le délit d\'entrave, et votre ' +
+      'sujet lui est peut-être extérieur. Essayez un mot plus général, ou celui que la loi emploie ' +
+      'plutôt que celui de la pratique.</p>';
+    return;
+  }
+
+  var f = formules(sel, racines);
+  var ctx = contexte(sel);
+  var html = '';
+
+  html += '<div class="grp"><p class="grp-t">Les formules que les décisions emploient — ' + sel.length +
+    ' décision' + (sel.length>1?'s':'') + ' parlent de votre sujet</p><div class="mots">';
+  if(sel.elargi){
+    html = html.replace('</p><div class="mots">',
+      ' <span style="text-transform:none;font-weight:400">(« ' + esc(sel.elargi.r) +
+      ' » n\'apparaît que dans ' + sel.elargi.n + ' décision' + (sel.elargi.n>1?'s':'') +
+      ' — la recherche s\'est élargie au mot suivant)</span></p><div class="mots">');
+  }
+  if(f.length){
+    f.forEach(function(x){
+      var ecrite = formeEcrite(x.f, sel);
+      html += '<button class="mot" type="button" data-q="' + esc(ecrite) + '"><b>' + esc(ecrite) +
+        '</b><span class="n">' + x.n + ' décision' + (x.n>1?'s':'') + '</span></button>';
+    });
+  } else {
+    html += '<button class="mot" type="button" data-q="' + esc(demandes[0]) + '"><b>' + esc(demandes[0]) +
+      '</b><span class="n">' + sel.length + ' décision' + (sel.length>1?'s':'') + '</span></button>';
+  }
+  html += '</div></div>';
+
+  if(ctx.themes.length){
+    html += '<div class="grp"><p class="grp-t">Où le sujet se joue</p><div class="mots">';
+    ctx.themes.forEach(function(t){
+      html += '<button class="mot" type="button" data-theme="' + esc(t[0]) + '"><b>' +
+        esc(LIBELLE_THEME[t[0]]||t[0]) + '</b><span class="n">' + t[1] + '</span></button>';
+    });
+    html += '</div></div>';
+  }
+
+  if(ctx.articles.length){
+    html += '<div class="grp"><p class="grp-t">Les articles que ces décisions visent</p><div class="mots">';
+    ctx.articles.forEach(function(a){
+      html += '<button class="mot" type="button" data-q="' + esc(a[0]) + '"><b>' + esc(a[0]) +
+        '</b><span class="n">' + a[1] + '</span></button>';
+    });
+    html += '</div></div>';
+  }
+
+  html += '<p class="rien">Les nombres sont ceux de cette base, non de la jurisprudence entière : ' +
+    'une formule rare ici peut être fréquente ailleurs. Cliquez une formule pour l\'appliquer à la liste.</p>';
+
+  els.motsZone.innerHTML = html;
+
+  els.motsZone.querySelectorAll('.mot').forEach(function(b){
+    b.addEventListener('click', function(){
+      if(b.dataset.theme){ els.theme.value = b.dataset.theme; els.q.value = ''; }
+      else { els.q.value = b.dataset.q; }
+      apply();
+      els.list.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  });
+}
+
+els.btnMots.addEventListener('click', trouverMots);
+els.sujet.addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){ e.preventDefault(); trouverMots(); }
+});
 
 /* ==== DÉMARRAGE ====
    Les gestionnaires ci-dessus (onglets, filtres) sont déjà posés : la page
